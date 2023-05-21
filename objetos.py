@@ -34,7 +34,7 @@ class BaseDatosRatas:
         self.cursor.execute("CREATE TABLE IF NOT EXISTS ratas (id INT PRIMARY KEY, peso FLOAT, fecha_nacimiento DATE, estable BOOLEAN)")
 
     def insertar_rata(self, rata):
-        consulta = "INSERT INTO ratas (id, peso, fecha_nacimiento, estable) VALUES (%s, %s, %s, %s)"
+        consulta = "INSERT INTO ratas (id, name, fase) VALUES (%s, %s, %s, %s)"
         datos = (rata.id, rata.peso, rata.fecha_nacimiento, rata.estable)
         self.cursor.execute(consulta, datos)
         self.conexion.commit()
