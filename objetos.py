@@ -1,6 +1,6 @@
 import tkinter as tk
 import mysql.connector
-from datetime import date
+from datetime import datetime
 from PIL import ImageTk, Image
 
 class Dieta:
@@ -48,9 +48,9 @@ class BaseDatosRatas:
         except mysql.connector.IntegrityError as e:
             print("Error: El valor ya está duplicado en la base de datos")
 
-    def insertar_dieta(self, idrat):
-        consulta = "INSERT INTO ratas (idrat, name,) VALUES (%s, %s)"
-        datos = (idrat, "rat"+idrat,)
+    def insertar_dieta_fase1(self, idrat,peso,sobras):
+        consulta = "INSERT INTO diadieta (idrat,fecha,peso,sobras) VALUES (%s,%s,%s,%s)"
+        datos = (idrat, datetime.now().strftime('%Y-%m-%d %H:%M:%S'),peso,sobras,)
         self.cursor.execute(consulta, datos)
         self.conexion.commit()
 
@@ -66,6 +66,16 @@ class BaseDatosRatas:
         self.cursor.execute(consulta,datos)
         resultado=self.cursor.fetchall()
         return len(resultado)
+    
+    def ultimos_registros(self,idrat):
+        consulta="SELECT peso FROM diadieta WHERE idrat=%s ORDER BY fecha DESC LIMIT 8"
+        datos=(idrat,)
+        self.cursor.execute(consulta,datos)
+        resultados = self.cursor.fetchall()
+        registros=[]
+        for resultado in resultados:
+            registros.append(int(resultado[0]))
+        return registros
 
 
     def consultar_ratas(self):
@@ -121,7 +131,7 @@ class VentanaRatas:
 
         self.boton_registrar = tk.Button(self.ventana, text="Resultado",command=self.consultar_fase)
         self.boton_registrar.pack()
-        self.boton_prueba = tk.Button(self.ventana, text="PRUEBA",command=self.insertar_rata)
+        self.boton_prueba = tk.Button(self.ventana, text="PRUEBA",command=self.insertar_dieta)
         self.boton_prueba.pack()
         #self.boton_registrar.place(x=170,y=200)
 
@@ -154,6 +164,45 @@ class VentanaRatas:
         self.entry_peso.delete(0, tk.END)
         self.entry_fecha_nacimiento.delete(0, tk.END)
         self.entry_estable.delete(0, tk.END)
+
+    def insertar_dieta(self):
+        if self.numero_registros()>8:
+            #Aqui hare el calculo para saber si ya es estable el peso de la rata creando un metodo que mande a llamar los ultimos 6 registros o hasta mas
+            registros=self.base_datos.ultimos_registros(self.entry_id.get())
+            print ("El resultado de estabilidad es: "+str(self.calcular_estabilidad(registros)))
+            fase = self.consultar_fase()
+            if fase and int(fase[0]) == 1:
+                print("Fase 1 dentro del if")
+                self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
+            elif fase and int(fase[0]) == 2:
+                print("Estamos en la fase 2")
+        else:
+            print("Fase 1 fuera del if")
+            self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
+
+    def calcular_estabilidad(self,registros):
+        primer= sum(registros[:3])/3
+        segundo=sum(registros[3:6])/3
+        primerError=abs(((primer-segundo)/(sum(registros[:6])/6))*100)
+        print("Primer porcentaje de error "+str(primerError))
+        if primerError<=.5:
+            tercero=sum(registros[1:4])/3
+            cuarto=sum(registros[4:7])/3
+            segundoError=abs(((tercero-cuarto)/(sum(registros[1:7])/6))*100)
+            print("Segundo porcentaje de error "+str(segundoError))
+            if segundoError<=.5:
+                quinto=sum(registros[2:5])/3
+                sexto=sum(registros[5:8])/3
+                tercerError=abs(((quinto-sexto)/(sum(registros[2:8])/6))*100)
+                print("Tercer porcentaje de error "+str(tercerError))
+                if tercerError<=.5:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False                    
 
     def insertar_rata(self):#FUNCIONALIDAD de registrar una rata ya esta funcionando
         self.base_datos.insertar_rata(self.entry_id.get())
