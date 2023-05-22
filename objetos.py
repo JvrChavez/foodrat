@@ -145,33 +145,29 @@ class VentanaRatas:
         self.entry_sobras = tk.Entry(self.ventana)
         self.entry_sobras.pack()
 
-        #self.etiqueta_fecha_nacimiento = tk.Label(self.ventana, text="Fecha de nacimiento:")
+        self.etiqueta_usuario = tk.Label(self.ventana, text="Usuario:")
         #self.etiqueta_fecha_nacimiento.pack()
-        #self.entry_fecha_nacimiento = tk.Entry(self.ventana)
+        self.entry_usuario = tk.Entry(self.ventana)
         #self.entry_fecha_nacimiento.pack()
 
-        #self.etiqueta_estable = tk.Label(self.ventana, text="Estable:")
+        self.etiqueta_pass = tk.Label(self.ventana, text="Password:")
         #self.etiqueta_estable.pack()
-        #self.entry_estable = tk.Entry(self.ventana)
+        self.entry_pass = tk.Entry(self.ventana)
         #self.entry_estable.pack()
 
-        self.boton_registrar = tk.Button(self.ventana, text="Resultado",command=self.insertar_dieta)
-        self.boton_registrar.pack()
+        self.boton_resultado = tk.Button(self.ventana, text="Resultado",command=self.insertar_dieta)
+        self.boton_resultado.pack()
         self.boton_prueba = tk.Button(self.ventana, text="PRUEBA",command=self)
         self.boton_prueba.pack()
-        #self.boton_registrar.place(x=170,y=200)
-
-        """self.boton_consultar = tk.Button(self.ventana, text="Reinicio de sujeto", command=self.consultar_ratas)
-        self.boton_consultar.place(x=145,y=120)"""
 
         self.etiqueta_resultado = tk.Label(self.ventana, text="")
         self.etiqueta_resultado.pack()
 
-        self.boton_consultar = tk.Button(self.ventana, text="Limpiar",command=self.limpiar)        
-        self.boton_consultar.pack()
+        self.boton_limpiar = tk.Button(self.ventana, text="Limpiar",command=self.limpiar)        
+        self.boton_limpiar.pack()
 
-        self.boton_consultar = tk.Button(self.ventana, text="Admin")
-        self.boton_consultar.place(x=330,y=20)
+        self.boton_admin = tk.Button(self.ventana, text="Admin",command=self.ventanaLogin)
+        self.boton_admin.place(x=330,y=20)
 
     def insertar_dieta(self):
         if self.numero_registros()>8:
@@ -250,22 +246,23 @@ class VentanaRatas:
         self.etiqueta_resultado.config(text=numero)
         return numero
 
-    def consultar_ratas(self):
-        ratas = self.base_datos.consultar_ratas()
-        self.texto_consulta.delete("1.0", tk.END)
-        for rata in ratas:
-            texto = f"ID: {rata.id}\n"
-            texto += f"Peso: {rata.peso}\n"
-            texto += f"Fecha de nacimiento: {rata.fecha_nacimiento}\n"
-            texto += f"Estable: {rata.estable}\n"
-            texto += "----------------\n"
-            self.texto_consulta.insert(tk.END, texto)
-
     def iniciar_aplicacion(self):
         self.base_datos.conectar()
         self.ventana.mainloop()
         self.base_datos.desconectar()
     
+    def ventanaLogin(self):
+        self.etiqueta_id.pack_forget()
+        self.entry_id.pack_forget()
+        self.etiqueta_peso.pack_forget()
+        self.entry_peso.pack_forget()
+        self.etiqueta_sobras.pack_forget()
+        self.entry_sobras.pack_forget()
+        self.boton_resultado.pack_forget()
+        self.etiqueta_resultado.pack_forget()
+        self.boton_prueba.pack_forget()
+        self.boton_limpiar.pack_forget()
+
     def limpiar(self):
         self.entry_id.delete(0,tk.END)
         self.entry_peso.delete(0,tk.END)
