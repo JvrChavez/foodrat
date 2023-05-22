@@ -54,6 +54,26 @@ class BaseDatosRatas:
         self.cursor.execute(consulta, datos)
         self.conexion.commit()
 
+    def insertar_dieta_fase2(self, idrat,peso,sobras,dieta,diferencia):
+        consulta = "INSERT INTO diadieta (idrat,fecha,peso,sobras,dieta,diferencia) VALUES (%s,%s,%s,%s,%s,%s)"
+        datos = (idrat, datetime.now().strftime('%Y-%m-%d %H:%M:%S'),peso,sobras,dieta,diferencia)
+        self.cursor.execute(consulta, datos)
+        self.conexion.commit()
+
+    def consultar_peso_estable(self,idrat):
+        consulta="SELECT pesoestable FROM rat WHERE idrat= %s"
+        datos=(idrat,)
+        self.cursor.execute(consulta, datos)
+        estable=self.cursor.fetchone()
+        return int(estable[0])
+    
+    def consultar_ultima_dieta(self,idrat):
+        consulta="SELECT dieta FROM diadieta WHERE idrat=%s ORDER BY fecha DESC LIMIT 1"#Con el order by, se obtienen los ultimos registros y el LIMIT dice cuantos seran
+        datos=(idrat,)
+        self.cursor.execute(consulta, datos)
+        dieta=self.cursor.fetchone()
+        return int(dieta[0])
+
     def consultar_fase(self,idrat):
         consulta="SELECT fase FROM rat WHERE idrat=%s ORDER BY fase DESC LIMIT 1"#Con el order by, se obtienen los ultimos registros y el LIMIT dice cuantos seran
         datos=(idrat,)
@@ -66,6 +86,12 @@ class BaseDatosRatas:
         self.cursor.execute(consulta,datos)
         resultado=self.cursor.fetchall()
         return len(resultado)
+    
+    def cambiar_fase(self,idrat,fase,peso):
+        consulta="UPDATE rat SET fase = %s, pesoestable = %s WHERE idrat = %s"
+        datos=(fase,peso,idrat,)
+        self.cursor.execute(consulta,datos)
+        self.conexion.commit()
     
     def ultimos_registros(self,idrat):
         consulta="SELECT peso FROM diadieta WHERE idrat=%s ORDER BY fecha DESC LIMIT 8"
@@ -129,16 +155,16 @@ class VentanaRatas:
         #self.entry_estable = tk.Entry(self.ventana)
         #self.entry_estable.pack()
 
-        self.boton_registrar = tk.Button(self.ventana, text="Resultado",command=self.consultar_fase)
+        self.boton_registrar = tk.Button(self.ventana, text="Resultado",command=self.insertar_dieta)
         self.boton_registrar.pack()
-        self.boton_prueba = tk.Button(self.ventana, text="PRUEBA",command=self.insertar_dieta)
+        self.boton_prueba = tk.Button(self.ventana, text="PRUEBA",command=self)
         self.boton_prueba.pack()
         #self.boton_registrar.place(x=170,y=200)
 
         """self.boton_consultar = tk.Button(self.ventana, text="Reinicio de sujeto", command=self.consultar_ratas)
         self.boton_consultar.place(x=145,y=120)"""
 
-        self.etiqueta_resultado = tk.Label(self.ventana, text="Resultado: Dieta de hoy es 15 gr")
+        self.etiqueta_resultado = tk.Label(self.ventana, text="")
         self.etiqueta_resultado.pack()
 
         self.boton_consultar = tk.Button(self.ventana, text="Limpiar",command=self.limpiar)        
@@ -147,38 +173,45 @@ class VentanaRatas:
         self.boton_consultar = tk.Button(self.ventana, text="Admin")
         self.boton_consultar.place(x=330,y=20)
 
-        #self.texto_consulta = tk.Text
-        #self.texto_consulta = tk.Text(self.ventana)
-        #self.texto_consulta.pack()
-
-    def registrar_dieta(self):
-        idrat = int(self.entry_id.get())
-        peso = float(self.entry_peso.get())
-        sobras = int(self.entry_sobras.get())
-        dieta = bool(self.entry_estable.get())
-        #diferencia = 
-
-        rata = Dieta(idrat, peso, sobras, dieta, diferencia)
-        self.base_datos.insertar_rata(rata)
-        self.entry_id.delete(0, tk.END)
-        self.entry_peso.delete(0, tk.END)
-        self.entry_fecha_nacimiento.delete(0, tk.END)
-        self.entry_estable.delete(0, tk.END)
-
     def insertar_dieta(self):
         if self.numero_registros()>8:
-            #Aqui hare el calculo para saber si ya es estable el peso de la rata creando un metodo que mande a llamar los ultimos 6 registros o hasta mas
-            registros=self.base_datos.ultimos_registros(self.entry_id.get())
-            print ("El resultado de estabilidad es: "+str(self.calcular_estabilidad(registros)))
             fase = self.consultar_fase()
             if fase and int(fase[0]) == 1:
-                print("Fase 1 dentro del if")
-                self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
+                #Aqui hare el calculo para saber si ya es estable el peso de la rata creando un metodo que mande a llamar los ultimos 6 registros o hasta mas
+                registros=self.base_datos.ultimos_registros(self.entry_id.get())
+                print ("El resultado de estabilidad es: "+str(self.calcular_estabilidad(registros)))
+                if self.calcular_estabilidad(registros):
+                    print("Cambiaremos a fase 2")
+                    self.base_datos.cambiar_fase(self.entry_id.get(),2,self.entry_peso.get())
+                    #Arriba se hace la machaca de fase 1 a 2
+                    self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),15,0)
+                    self.etiqueta_resultado.config(text="Por fin estable dale 15gr")
+                else:
+                    print("Fase 1 dentro del if")
+                    self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
+                    self.etiqueta_resultado.config(text="Aun no es estable")
             elif fase and int(fase[0]) == 2:
                 print("Estamos en la fase 2")
+                pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
+                ultimaDieta=self.base_datos.consultar_ultima_dieta(self.entry_id.get())
+                pesoActual=int(self.entry_peso.get())
+                diferencia=pesoEstable-pesoActual
+                if pesoActual>pesoEstable*.8:
+                    if pesoActual>pesoEstable*.85:
+                        print('Disminuyo la dieta')
+                        dietaIdeal=ultimaDieta-((pesoActual-pesoEstable*.85)/2)#Significa debe bajar peso para estar en el margen
+                    else:
+                        print('Se mantuvo la dieta')
+                        dietaIdeal=ultimaDieta#Significa que esta en el margen
+                else:
+                    print('Se subio la dieta')
+                    dietaIdeal=ultimaDieta-((pesoActual-pesoEstable*.8)/2)#Significa debe subir peso para estar en el margen
+                self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),str(dietaIdeal),diferencia)
+                self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
         else:
             print("Fase 1 fuera del if")
             self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
+            self.etiqueta_resultado.config(text="Aun no es estable")
 
     def calcular_estabilidad(self,registros):
         primer= sum(registros[:3])/3
@@ -209,7 +242,7 @@ class VentanaRatas:
 
     def consultar_fase(self):
         fase=self.base_datos.consultar_fase(self.entry_id.get())
-        self.etiqueta_resultado.config(text=fase)
+        #self.etiqueta_resultado.config(text=fase)
         return fase
     
     def numero_registros(self):

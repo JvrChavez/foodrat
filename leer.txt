@@ -38,3 +38,10 @@ Fase (1,2,3) 1.-Fase de engorda
 
 Despues de qu se obtiene la estabilidad y se debe de calcular cuanto es el 100% de la comida tambien
 entonces despues de eso de la estabilidad se le debe reducir la comida al 50% y de ahi ya todo normal de la dieta
+
+
+Formula:
+Si esta mas bajo del 80%
+	dieta+(dif8/2)
+Si esta arriba del 85%
+	dieta-(dif85/2)
