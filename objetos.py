@@ -145,32 +145,20 @@ class VentanaRatas:
         self.entry_sobras = tk.Entry(self.ventana)
         self.entry_sobras.pack()
 
-        self.etiqueta_usuario = tk.Label(self.ventana, text="Usuario:")
-        #self.etiqueta_fecha_nacimiento.pack()
-        self.entry_usuario = tk.Entry(self.ventana)
-        #self.entry_fecha_nacimiento.pack()
-
-        self.etiqueta_pass = tk.Label(self.ventana, text="Password:")
-        #self.etiqueta_estable.pack()
-        self.entry_pass = tk.Entry(self.ventana)
-        #self.entry_estable.pack()
-
         self.boton_resultado = tk.Button(self.ventana, text="Resultado",command=self.insertar_dieta)
         self.boton_resultado.pack()
-        self.boton_prueba = tk.Button(self.ventana, text="PRUEBA",command=self)
-        self.boton_prueba.pack()
 
         self.etiqueta_resultado = tk.Label(self.ventana, text="")
         self.etiqueta_resultado.pack()
 
         self.boton_limpiar = tk.Button(self.ventana, text="Limpiar",command=self.limpiar)        
-        self.boton_limpiar.pack()
+        self.boton_limpiar.pack()        
 
-        self.boton_admin = tk.Button(self.ventana, text="Admin",command=self.ventanaLogin)
+        self.boton_admin = tk.Button(self.ventana, text="Admin",command=lambda:self.ventanaLogin(0))
         self.boton_admin.place(x=330,y=20)
 
     def insertar_dieta(self):
-        if self.numero_registros()>8:
+        if self.numero_registros()>8:#Se pregunta si tiene mas de 8 registros
             fase = self.consultar_fase()
             if fase and int(fase[0]) == 1:
                 #Aqui hare el calculo para saber si ya es estable el peso de la rata creando un metodo que mande a llamar los ultimos 6 registros o hasta mas
@@ -204,7 +192,7 @@ class VentanaRatas:
                     dietaIdeal=ultimaDieta-((pesoActual-pesoEstable*.8)/2)#Significa debe subir peso para estar en el margen
                 self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),str(dietaIdeal),diferencia)
                 self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
-        else:
+        else:#En caso de no tener mas de 8 registros...
             print("Fase 1 fuera del if")
             self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
             self.etiqueta_resultado.config(text="Aun no es estable")
@@ -251,17 +239,126 @@ class VentanaRatas:
         self.ventana.mainloop()
         self.base_datos.desconectar()
     
-    def ventanaLogin(self):
-        self.etiqueta_id.pack_forget()
-        self.entry_id.pack_forget()
-        self.etiqueta_peso.pack_forget()
-        self.entry_peso.pack_forget()
-        self.etiqueta_sobras.pack_forget()
-        self.entry_sobras.pack_forget()
-        self.boton_resultado.pack_forget()
-        self.etiqueta_resultado.pack_forget()
-        self.boton_prueba.pack_forget()
-        self.boton_limpiar.pack_forget()
+    def ventanaNormal(self):
+        #Desaparecer
+        self.etiqueta_usuario.pack_forget()
+        self.entry_usuario.pack_forget()
+        self.etiqueta_pass.pack_forget()
+        self.entry_pass.pack_forget()
+        self.boton_login.pack_forget()
+        self.boton_back_login.place_forget()
+        #Aparecer
+        self.etiqueta_id.pack()
+        self.entry_id.pack()
+        self.etiqueta_peso.pack()
+        self.entry_peso.pack()
+        self.etiqueta_sobras.pack()
+        self.entry_sobras.pack()
+        self.boton_resultado.pack()
+        self.etiqueta_resultado.pack()
+        self.boton_limpiar.pack()
+        self.boton_admin.place(x=330,y=20)
+
+    def ventanaLogin(self,donde):
+        if donde==0:
+            #Desaparecer normal
+            self.etiqueta_id.pack_forget()
+            self.entry_id.pack_forget()
+            self.etiqueta_peso.pack_forget()
+            self.entry_peso.pack_forget()
+            self.etiqueta_sobras.pack_forget()
+            self.entry_sobras.pack_forget()
+            self.boton_resultado.pack_forget()
+            self.etiqueta_resultado.pack_forget()
+            self.boton_limpiar.pack_forget()
+            self.boton_admin.place_forget()
+        else:
+            #desaparecen los de ventana admin
+            self.etiquetaAdminitrador.pack_forget()
+            self.boton_ventanaRegistro.pack_forget()
+            self.boton_ventanaReinicio.pack_forget()
+            self.boton_back_admin.place_forget()
+        #Aparecer
+        self.etiqueta_usuario = tk.Label(self.ventana, text="Usuario:")
+        self.etiqueta_usuario.pack()
+        self.entry_usuario = tk.Entry(self.ventana)
+        self.entry_usuario.pack()
+        self.etiqueta_pass = tk.Label(self.ventana, text="Password:")
+        self.etiqueta_pass.pack()
+        self.entry_pass = tk.Entry(self.ventana)
+        self.entry_pass.pack()
+        self.boton_login=tk.Button(self.ventana, text="Login",command=lambda:self.ventanaAdmin(0))
+        self.boton_login.pack()
+        self.boton_back_login = tk.Button(self.ventana, text="Back",command=self.ventanaNormal)
+        self.boton_back_login.place(x=330,y=20)
+
+    def ventanaAdmin(self,donde):
+        if donde==0:
+            #Desaparecer login
+            self.etiqueta_usuario.pack_forget()
+            self.entry_usuario.pack_forget()
+            self.etiqueta_pass.pack_forget()
+            self.entry_pass.pack_forget()
+            self.boton_login.pack_forget()
+            self.boton_back_login.place_forget()
+        elif donde==1:
+            #Desaparecer Registro
+            self.etiqueta_registro.pack_forget()
+            self.etiqueta_id.pack_forget()
+            self.entry_id.pack_forget()
+            self.boton_registro.pack_forget()
+            self.boton_back_registro.place_forget()
+        elif donde==2:
+            #Desaparece Reinicio
+            self.etiqueta_reinicio.pack_forget()
+            self.etiqueta_id.pack_forget()
+            self.entry_id.pack_forget()
+            self.boton_reinicio.pack_forget()            
+            self.boton_back_reinicio.place_forget()
+        #Aparecer
+        self.etiquetaAdminitrador=tk.Label(self.ventana,text="Administrador")
+        self.etiquetaAdminitrador.pack()
+        self.boton_ventanaRegistro=tk.Button(self.ventana,text="Registrar",command=self.ventanaRegistro)
+        self.boton_ventanaRegistro.pack()
+        self.boton_ventanaReinicio=tk.Button(self.ventana,text="Reinicio de sujeto",command=self.ventanaReinicio)
+        self.boton_ventanaReinicio.pack()
+        self.boton_back_admin = tk.Button(self.ventana, text="Back",command=lambda:self.ventanaLogin(1))
+        self.boton_back_admin.place(x=330,y=20)
+
+    def ventanaRegistro(self):
+        #Desaparecer
+        self.etiquetaAdminitrador.pack_forget()
+        self.boton_ventanaRegistro.pack_forget()
+        self.boton_ventanaReinicio.pack_forget()
+        self.boton_back_admin.place_forget()
+        #Aparecer
+        self.etiqueta_registro=tk.Label(self.ventana,text="Registro de nueva rata")
+        self.etiqueta_registro.pack()
+        self.etiqueta_id.pack()
+        self.entry_id.pack()
+        self.boton_registro=tk.Button(self.ventana,text="Registrar",command=self.insertar_rata)
+        self.boton_registro.pack()
+        self.boton_back_registro = tk.Button(self.ventana, text="Back",command=lambda:self.ventanaAdmin(1))
+        self.boton_back_registro.place(x=330,y=20)
+
+    def ventanaReinicio(self):
+        #Desaparecer
+        self.etiquetaAdminitrador.pack_forget()
+        self.boton_ventanaRegistro.pack_forget()
+        self.boton_ventanaReinicio.pack_forget()
+        self.boton_back_admin.place_forget()
+        #Aparecer
+        self.etiqueta_reinicio=tk.Label(self.ventana,text="Reinicio de fase en rata")
+        self.etiqueta_reinicio.pack()
+        self.etiqueta_id.pack()
+        self.entry_id.pack()
+        self.boton_reinicio=tk.Button(self.ventana,text="Reiniciar",command=self.reiniciar_fase)
+        self.boton_reinicio.pack()
+        self.boton_back_reinicio = tk.Button(self.ventana, text="Back",command=lambda:self.ventanaAdmin(2))
+        self.boton_back_reinicio.place(x=330,y=20)
+        
+    def reiniciar_fase(self):
+        self.base_datos.cambiar_fase(self.entry_id.get(),1,0)
 
     def limpiar(self):
         self.entry_id.delete(0,tk.END)
