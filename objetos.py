@@ -1,12 +1,20 @@
 import tkinter as tk
 import mysql.connector
+from datetime import date
+
+class Dieta:
+    def __init__(self, idrat, peso, sobras, dieta, diferencia):
+        self.idrat = idrat
+        self.peso = peso
+        self.sobras = sobras
+        self.dieta = dieta
+        self.diferencia = diferencia
 
 class Rata:
-    def __init__(self, id, peso, fecha_nacimiento, estable):
-        self.id = id
-        self.peso = peso
-        self.fecha_nacimiento = fecha_nacimiento
-        self.estable = estable
+    def __init__(self,idrat,name,fase):
+        self.idrat=idrat
+        self.name=name
+        self.fase=fase
 
 class BaseDatosRatas:
     def __init__(self, host, port,usuario, contraseña, nombre_base_datos):
@@ -30,14 +38,23 @@ class BaseDatosRatas:
         self.cursor.close()
         self.conexion.close()
 
-    def crear_tabla(self):
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS ratas (id INT PRIMARY KEY, peso FLOAT, fecha_nacimiento DATE, estable BOOLEAN)")
-
     def insertar_rata(self, rata):
-        consulta = "INSERT INTO ratas (id, name, fase) VALUES (%s, %s, %s, %s)"
+        consulta = "INSERT INTO rat (idrat, name, fase) VALUES (%s, %s, %s)"
         datos = (rata.id, rata.peso, rata.fecha_nacimiento, rata.estable)
         self.cursor.execute(consulta, datos)
         self.conexion.commit()
+
+    def insertar_dieta(self, rata):
+        consulta = "INSERT INTO ratas (idrat, name, fase) VALUES (%s, %s, %s, %s)"
+        datos = (Dieta.idrat, rata.peso, rata.fecha_nacimiento, rata.estable)
+        self.cursor.execute(consulta, datos)
+        self.conexion.commit()
+
+    def consultar_fase(self,rata):
+        consulta="SELECT fase FROM rat WHERE id=%s"
+        datos=(rata.id)
+        return self.cursor.fetchall()
+
 
     def consultar_ratas(self):
         self.cursor.execute("SELECT * FROM ratas")
@@ -65,10 +82,15 @@ class VentanaRatas:
         self.entry_id = tk.Entry(self.ventana)
         self.entry_id.pack()
 
-        self.etiqueta_peso = tk.Label(self.ventana, text="Peso:")
+        self.etiqueta_peso = tk.Label(self.ventana, text="Peso")#date.today().strftime('%Y-%m-%d') PARA FECHA
         self.etiqueta_peso.pack()
         self.entry_peso = tk.Entry(self.ventana)
         self.entry_peso.pack()
+
+        self.etiqueta_sobras = tk.Label(self.ventana, text="Sobras")#date.today().strftime('%Y-%m-%d') PARA FECHA
+        self.etiqueta_sobras.pack()
+        self.entry_sobras = tk.Entry(self.ventana)
+        self.entry_sobras.pack()
 
         self.etiqueta_fecha_nacimiento = tk.Label(self.ventana, text="Fecha de nacimiento:")
         self.etiqueta_fecha_nacimiento.pack()
@@ -90,13 +112,14 @@ class VentanaRatas:
         self.texto_consulta = tk.Text(self.ventana)
         self.texto_consulta.pack()
 
-    def registrar_rata(self):
-        id = int(self.entry_id.get())
+    def registrar_dieta(self):
+        idrat = int(self.entry_id.get())
         peso = float(self.entry_peso.get())
-        fecha_nacimiento = self.entry_fecha_nacimiento.get()
-        estable = bool(self.entry_estable.get())
+        sobras = int(self.entry_sobras.get())
+        dieta = bool(self.entry_estable.get())
+        diferencia = 
 
-        rata = Rata(id, peso, fecha_nacimiento, estable)
+        rata = Dieta(idrat, peso, sobras, dieta, diferencia
         self.base_datos.insertar_rata(rata)
         self.entry_id.delete(0, tk.END)
         self.entry_peso.delete(0, tk.END)
@@ -116,13 +139,12 @@ class VentanaRatas:
 
     def iniciar_aplicacion(self):
         self.base_datos.conectar()
-        self.base_datos.crear_tabla()
         self.ventana.mainloop()
         self.base_datos.desconectar()
 
 # Configuración de la base de datos
 host = "localhost"
-port = "3307"
+port = "3306"
 usuario = "root"
 contraseña = ""
 nombre_base_datos = "foodrat"
