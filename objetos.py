@@ -285,7 +285,7 @@ class VentanaRatas:
         self.entry_usuario.pack()
         self.etiqueta_pass = tk.Label(self.ventana, text="Password:")
         self.etiqueta_pass.pack()
-        self.entry_pass = tk.Entry(self.ventana)
+        self.entry_pass = tk.Entry(self.ventana,show="•")
         self.entry_pass.pack()
         self.boton_login=tk.Button(self.ventana, text="Login",command=lambda:self.ventanaAdmin(0))
         self.boton_login.pack()
