@@ -102,6 +102,16 @@ class BaseDatosRatas:
         for resultado in resultados:
             registros.append(int(resultado[0]))
         return registros
+    
+    def ultimos_registros_fase2(self,idrat):
+        consulta="SELECT dieta FROM diadieta WHERE idrat=%s ORDER BY fecha DESC LIMIT 15"
+        datos=(idrat,)
+        self.cursor.execute(consulta,datos)
+        resultados = self.cursor.fetchall()
+        registros=[]
+        for resultado in resultados:
+            registros.append(int(resultado[0]))
+        return registros
 
 
     def consultar_ratas(self):
@@ -176,6 +186,21 @@ class VentanaRatas:
                     self.etiqueta_resultado.config(text="Aun no es estable")
             elif fase and int(fase[0]) == 2:
                 print("Estamos en la fase 2")
+                if self.calcular_saludfase2(self.entry_id.get()):#Saber si sigue saludable la rata
+                    regitros=self.base_datos.ultimos_registros_fase2(self.entry_id.get())
+                    registroAntiguo=registros[14]
+                    if registroAntiguo == 15:#Se cumplio el tiempo de fase 2
+                        print("Cambiaremos a fase 2")
+                    else:#Aun se matiene en fase 2
+                        pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())                    
+                        pesoActual=int(self.entry_peso.get())
+                        diferencia=pesoEstable-pesoActual
+                        self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),15,diferencia)
+                else:#en caso de que no este saludable
+                    print("Esta bajando demaciado rapido"):
+                
+            elif fase and int(fase[0])==3:
+                print("Estamos en la fase 3")
                 pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
                 ultimaDieta=self.base_datos.consultar_ultima_dieta(self.entry_id.get())
                 pesoActual=int(self.entry_peso.get())
@@ -183,16 +208,17 @@ class VentanaRatas:
                 if pesoActual>pesoEstable*.8:
                     if pesoActual>pesoEstable*.85:
                         print('Disminuyo la dieta')
-                        dietaIdeal=ultimaDieta-((pesoActual-pesoEstable*.85)/2)#Significa debe bajar peso para estar en el margen
+                        dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*.85)/2))#Significa debe bajar peso para estar en el margen
                     else:
                         print('Se mantuvo la dieta')
                         dietaIdeal=ultimaDieta#Significa que esta en el margen
                 else:
                     print('Se subio la dieta')
-                    dietaIdeal=ultimaDieta-((pesoActual-pesoEstable*.8)/2)#Significa debe subir peso para estar en el margen
+                    dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*.8)/2))#Significa debe subir peso para estar en el margen
                 self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),str(dietaIdeal),diferencia)
                 self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
         else:#En caso de no tener mas de 8 registros...
+
             print("Fase 1 fuera del if")
             self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
             self.etiqueta_resultado.config(text="Aun no es estable")
@@ -219,7 +245,15 @@ class VentanaRatas:
             else:
                 return False
         else:
-            return False                    
+            return False
+
+    def calcular_saludfase2(self):
+        pesoActual=int(self.entry_peso.get())
+        pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
+        if pesoActual < pesoEstable:
+            return False
+        else:
+            return True
 
     def insertar_rata(self):#FUNCIONALIDAD de registrar una rata ya esta funcionando
         self.base_datos.insertar_rata(self.entry_id.get())
