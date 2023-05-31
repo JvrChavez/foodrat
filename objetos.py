@@ -190,14 +190,27 @@ class VentanaRatas:
                     regitros=self.base_datos.ultimos_registros_fase2(self.entry_id.get())
                     registroAntiguo=registros[14]
                     if registroAntiguo == 15:#Se cumplio el tiempo de fase 2
-                        print("Cambiaremos a fase 2")
+                        print("Cambiaremos a fase 3")   
+                        pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())                    
+                        pesoActual=int(self.entry_peso.get())
+                        diferencia=pesoEstable-pesoActual                                             
+                        self.base_datos.cambiar_fase(self.entry_id.get(),3,self.entry_peso.get())
+                        #Arriba se hace la machaca de fase 2 a 3
+                        self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),15,diferencia)
+                        self.etiqueta_resultado.config(text="Termino fase 2 dale 15gr")
                     else:#Aun se matiene en fase 2
                         pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())                    
                         pesoActual=int(self.entry_peso.get())
                         diferencia=pesoEstable-pesoActual
                         self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),15,diferencia)
                 else:#en caso de que no este saludable
-                    print("Esta bajando demaciado rapido"):
+                    print("Esta bajando demasiado rapido, se sube la dieta y pasa a fase 3")
+                    pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
+                    ultimaDieta=self.base_datos.consultar_ultima_dieta(self.entry_id.get())
+                    pesoActual=int(self.entry_peso.get())
+                    dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*.8)/2))#Significa debe subir peso para estar en el margen
+                    self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),str(dietaIdeal),diferencia)
+                    self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
                 
             elif fase and int(fase[0])==3:
                 print("Estamos en la fase 3")
@@ -250,7 +263,7 @@ class VentanaRatas:
     def calcular_saludfase2(self):
         pesoActual=int(self.entry_peso.get())
         pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
-        if pesoActual < pesoEstable:
+        if pesoActual < pesoEstable*.8:
             return False
         else:
             return True
