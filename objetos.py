@@ -2,6 +2,7 @@ import tkinter as tk
 import mysql.connector
 from datetime import datetime
 from PIL import ImageTk, Image
+from tkinter import ttk
 
 class Dieta:
     def __init__(self, idrat, peso, sobras, dieta, diferencia):
@@ -48,6 +49,15 @@ class BaseDatosRatas:
         except mysql.connector.IntegrityError as e:
             print("Error: El valor ya está duplicado en la base de datos")
 
+    def insertar_rata_fase(self, idrat,fase,peso):
+        try:
+            consulta = "INSERT INTO rat (idrat, name,fase,pesoestable) VALUES (%s, %s,%s,%s)"
+            datos = (idrat, "rat"+idrat,fase,peso,)
+            self.cursor.execute(consulta, datos)
+            self.conexion.commit()
+        except mysql.connector.IntegrityError as e:
+            print("Error: El valor ya está duplicado en la base de datos")
+
     def insertar_dieta_fase1(self, idrat,peso,sobras):
         consulta = "INSERT INTO diadieta (idrat,fecha,peso,sobras) VALUES (%s,%s,%s,%s)"
         datos = (idrat, datetime.now().strftime('%Y-%m-%d %H:%M:%S'),peso,sobras,)
@@ -56,7 +66,7 @@ class BaseDatosRatas:
 
     def insertar_dieta_fase2(self, idrat,peso,sobras,dieta,diferencia):
         consulta = "INSERT INTO diadieta (idrat,fecha,peso,sobras,dieta,diferencia) VALUES (%s,%s,%s,%s,%s,%s)"
-        datos = (idrat, datetime.now().strftime('%Y-%m-%d %H:%M:%S'),peso,sobras,dieta,diferencia)
+        datos = (idrat, datetime.now().strftime('%Y-%m-%d %H:%M:%S'),peso,sobras,dieta,diferencia,)
         self.cursor.execute(consulta, datos)
         self.conexion.commit()
 
@@ -150,10 +160,14 @@ class VentanaRatas:
         self.entry_peso = tk.Entry(self.ventana)
         self.entry_peso.pack()
 
-        self.etiqueta_sobras = tk.Label(self.ventana, text="Sobras")#date.today().strftime('%Y-%m-%d') PARA FECHA
+        self.etiqueta_sobras = tk.Label(self.ventana, text="Sobras:")#date.today().strftime('%Y-%m-%d') PARA FECHA
         self.etiqueta_sobras.pack()
         self.entry_sobras = tk.Entry(self.ventana)
         self.entry_sobras.pack()
+
+        self.checkbox_value=tk.BooleanVar(self.ventana)
+        self.checkbox=tk.Checkbutton(self.ventana,text="Extra de fin de semana",variable=self.checkbox_value)
+        self.checkbox.pack()
 
         self.boton_resultado = tk.Button(self.ventana, text="Resultado",command=self.insertar_dieta)
         self.boton_resultado.pack()
@@ -168,7 +182,7 @@ class VentanaRatas:
         self.boton_admin.place(x=330,y=20)
 
     def insertar_dieta(self):
-        if self.numero_registros()>8:#Se pregunta si tiene mas de 8 registros
+        ##if self.numero_registros()>8:#Se pregunta si tiene mas de 8 registros
             fase = self.consultar_fase()
             if fase and int(fase[0]) == 1:
                 #Aqui hare el calculo para saber si ya es estable el peso de la rata creando un metodo que mande a llamar los ultimos 6 registros o hasta mas
@@ -179,7 +193,10 @@ class VentanaRatas:
                     self.base_datos.cambiar_fase(self.entry_id.get(),2,self.entry_peso.get())
                     #Arriba se hace la machaca de fase 1 a 2
                     self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),15,0)
-                    self.etiqueta_resultado.config(text="Por fin estable dale 15gr")
+                    if self.checkbox_value.get():
+                        self.etiqueta_resultado.config(text="Por fin estable dale 45gr")
+                    else:                        
+                        self.etiqueta_resultado.config(text="Por fin estable dale 15gr")
                 else:
                     print("Fase 1 dentro del if")
                     self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
@@ -187,7 +204,7 @@ class VentanaRatas:
             elif fase and int(fase[0]) == 2:
                 print("Estamos en la fase 2")
                 if self.calcular_saludfase2(self.entry_id.get()):#Saber si sigue saludable la rata
-                    regitros=self.base_datos.ultimos_registros_fase2(self.entry_id.get())
+                    registros=self.base_datos.ultimos_registros_fase2(self.entry_id.get())
                     registroAntiguo=registros[14]
                     if registroAntiguo == 15:#Se cumplio el tiempo de fase 2
                         print("Cambiaremos a fase 3")   
@@ -197,12 +214,19 @@ class VentanaRatas:
                         self.base_datos.cambiar_fase(self.entry_id.get(),3,self.entry_peso.get())
                         #Arriba se hace la machaca de fase 2 a 3
                         self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),15,diferencia)
-                        self.etiqueta_resultado.config(text="Termino fase 2 dale 15gr")
+                        if self.checkbox_value.get():
+                            self.etiqueta_resultado.config(text="Termino fase 2 dale 45gr")
+                        else:                        
+                            self.etiqueta_resultado.config(text="Termino fase 2 dale 15gr")
                     else:#Aun se matiene en fase 2
                         pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())                    
                         pesoActual=int(self.entry_peso.get())
                         diferencia=pesoEstable-pesoActual
                         self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),15,diferencia)
+                        if self.checkbox_value.get():
+                            self.etiqueta_resultado.config(text="Aun en fase 2 dale 45gr")
+                        else:                        
+                            self.etiqueta_resultado.config(text="Aun en fase 2 dale 15gr")
                 else:#en caso de que no este saludable
                     print("Esta bajando demasiado rapido, se sube la dieta y pasa a fase 3")
                     pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
@@ -210,8 +234,11 @@ class VentanaRatas:
                     pesoActual=int(self.entry_peso.get())
                     dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*.8)/2))#Significa debe subir peso para estar en el margen
                     self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),str(dietaIdeal),diferencia)
-                    self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
-                
+                    if self.checkbox_value.get():
+                        gramosFinde=dietaIdeal*3
+                        self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(gramosFinde)+"gr")
+                    else:
+                        self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
             elif fase and int(fase[0])==3:
                 print("Estamos en la fase 3")
                 pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
@@ -229,12 +256,17 @@ class VentanaRatas:
                     print('Se subio la dieta')
                     dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*.8)/2))#Significa debe subir peso para estar en el margen
                 self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),str(dietaIdeal),diferencia)
-                self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
-        else:#En caso de no tener mas de 8 registros...
+                if self.checkbox_value.get():
+                    gramosFinde=dietaIdeal*3
+                    self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(gramosFinde)+"gr")
+                else:
+                    self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
 
-            print("Fase 1 fuera del if")
-            self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
-            self.etiqueta_resultado.config(text="Aun no es estable")
+            """else:#En caso de no tener mas de 8 registros...
+
+                print("Fase 1 fuera del if")
+                self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
+                self.etiqueta_resultado.config(text="Aun no es estable")"""
 
     def calcular_estabilidad(self,registros):
         primer= sum(registros[:3])/3
@@ -269,7 +301,21 @@ class VentanaRatas:
             return True
 
     def insertar_rata(self):#FUNCIONALIDAD de registrar una rata ya esta funcionando
-        self.base_datos.insertar_rata(self.entry_id.get())
+        fase=self.combo.get()
+        match fase:
+            case "1":
+                print("Registro en fase 1")
+                self.base_datos.insertar_rata(self.entry_id.get())
+            case "2":
+                print("Registro en fase 2")
+                self.base_datos.insertar_rata_fase(self.entry_id.get(),fase,self.entry_pesoEstable.get())
+            case "3":
+                print("Registro en fase 3")
+                self.base_datos.insertar_rata_fase(self.entry_id.get(),fase,self.entry_pesoEstable.get())
+                pesoActual=int(self.entry_peso.get())
+                pesoEstable=int(self.entry_pesoEstable.get())
+                diferencia=pesoEstable-pesoActual
+                self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),"0",self.entry_dieta.get(),diferencia)                
 
     def consultar_fase(self):
         fase=self.base_datos.consultar_fase(self.entry_id.get())
@@ -301,6 +347,7 @@ class VentanaRatas:
         self.entry_peso.pack()
         self.etiqueta_sobras.pack()
         self.entry_sobras.pack()
+        self.checkbox.pack()
         self.boton_resultado.pack()
         self.etiqueta_resultado.pack()
         self.boton_limpiar.pack()
@@ -315,6 +362,7 @@ class VentanaRatas:
             self.entry_peso.pack_forget()
             self.etiqueta_sobras.pack_forget()
             self.entry_sobras.pack_forget()
+            self.checkbox.pack_forget()
             self.boton_resultado.pack_forget()
             self.etiqueta_resultado.pack_forget()
             self.boton_limpiar.pack_forget()
@@ -351,8 +399,17 @@ class VentanaRatas:
         elif donde==1:
             #Desaparecer Registro
             self.etiqueta_registro.pack_forget()
+            self.combo.pack_forget()
             self.etiqueta_id.pack_forget()
             self.entry_id.pack_forget()
+            self.etiqueta_pesoEstable.pack_forget()
+            self.etiqueta_Add_fase2.pack_forget()
+            self.entry_pesoEstable.pack_forget()        
+            self.etiqueta_dieta.pack_forget()
+            self.etiqueta_Add_fase3.pack_forget()
+            self.entry_dieta.pack_forget()
+            self.etiqueta_peso.pack_forget()
+            self.entry_peso.pack_forget()
             self.boton_registro.pack_forget()
             self.boton_back_registro.place_forget()
         elif donde==2:
@@ -379,10 +436,30 @@ class VentanaRatas:
         self.boton_ventanaReinicio.pack_forget()
         self.boton_back_admin.place_forget()
         #Aparecer
-        self.etiqueta_registro=tk.Label(self.ventana,text="Registro de nueva rata")
+        self.etiqueta_registro=tk.Label(self.ventana,text="Registro de nueva rata seleccionando su fase:")
+        self.etiqueta_Add_fase2=tk.Label(self.ventana,text="*Peso estable necesario de fase 2 en adelante")
+        self.etiqueta_pesoEstable=tk.Label(self.ventana,text="Peso estable:")
+        self.etiqueta_Add_fase3=tk.Label(self.ventana,text="*Dieta necesaria de fase 3 en adelante")
+        self.etiqueta_dieta=tk.Label(self.ventana,text="Dieta:")
+        self.entry_pesoEstable = tk.Entry(self.ventana)
+        self.entry_dieta = tk.Entry(self.ventana)
+        self.combo = ttk.Combobox(
+            self.ventana,
+            state="readonly",
+            values=["1", "2", "3"]
+        )        
         self.etiqueta_registro.pack()
+        self.combo.pack()
         self.etiqueta_id.pack()
-        self.entry_id.pack()
+        self.entry_id.pack()        
+        self.etiqueta_pesoEstable.pack()
+        self.etiqueta_Add_fase2.pack()
+        self.entry_pesoEstable.pack()        
+        self.etiqueta_dieta.pack()
+        self.etiqueta_Add_fase3.pack()
+        self.entry_dieta.pack()
+        self.etiqueta_peso.pack()
+        self.entry_peso.pack()
         self.boton_registro=tk.Button(self.ventana,text="Registrar",command=self.insertar_rata)
         self.boton_registro.pack()
         self.boton_back_registro = tk.Button(self.ventana, text="Back",command=lambda:self.ventanaAdmin(1))
