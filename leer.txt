@@ -34,7 +34,7 @@ Diferencia
 Tabla estabiidad:
 IdRat
 name
-Fase (1,2,3) 1.-Fase de engorda
+Fase (1(Ad libitum),2(Privacion),3(Mantenimiento)) 1.-Fase de engorda
 
 Despues de qu se obtiene la estabilidad y se debe de calcular cuanto es el 100% de la comida tambien
 entonces despues de eso de la estabilidad se le debe reducir la comida al 50% y de ahi ya todo normal de la dieta
