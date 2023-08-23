@@ -169,6 +169,14 @@ class VentanaRatas:
         self.checkbox=tk.Checkbutton(self.ventana,text="Extra de fin de semana",variable=self.checkbox_value)
         self.checkbox.pack()
 
+        self.combodieta = ttk.Combobox(
+            self.ventana,
+            state="readonly",
+            values=["95%-90%","90%-85%","85%-80%","80%-75%","75%-70%","70%-65"]
+        )
+        self.combodieta.current(2)
+        self.combodieta.pack()
+
         self.boton_resultado = tk.Button(self.ventana, text="Resultado",command=self.insertar_dieta)
         self.boton_resultado.pack()
 
