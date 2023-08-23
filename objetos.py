@@ -172,7 +172,7 @@ class VentanaRatas:
         self.combodieta = ttk.Combobox(
             self.ventana,
             state="readonly",
-            values=["95%-90%","90%-85%","85%-80%","80%-75%","75%-70%","70%-65"]
+            values=["95%-90%","90%-85%","85%-80%","80%-75%","75%-70%","70%-65%"]
         )
         self.combodieta.current(2)
         self.combodieta.pack()
@@ -192,6 +192,25 @@ class VentanaRatas:
     def insertar_dieta(self):
         ##if self.numero_registros()>8:#Se pregunta si tiene mas de 8 registros
             fase = self.consultar_fase()
+            dietasetup=self.combodieta.get()
+            if (dietasetup)=="95%-90%":
+                alto=.95
+                bajo=.9
+            elif("90%-85%"):
+                alto=.9
+                bajo=.85
+            elif("85%-80%"):
+                alto=.85
+                bajo=.8
+            elif("80%-75%"):
+                alto=.8
+                bajo=.75
+            elif("75%-70%"):
+                alto=.75
+                bajo=.7
+            elif("70%-65%"):
+                alto=.7
+                bajo=.65
             if fase and int(fase[0]) == 1:
                 #Aqui hare el calculo para saber si ya es estable el peso de la rata creando un metodo que mande a llamar los ultimos 6 registros o hasta mas
                 registros=self.base_datos.ultimos_registros(self.entry_id.get())
@@ -211,7 +230,7 @@ class VentanaRatas:
                     self.etiqueta_resultado.config(text="Aun no es estable")
             elif fase and int(fase[0]) == 2:
                 print("Estamos en la fase 2")
-                if self.calcular_saludfase2(self.entry_id.get()):#Saber si sigue saludable la rata
+                if self.calcular_saludfase2(self.entry_id.get(),bajo):#Saber si sigue saludable la rata
                     registros=self.base_datos.ultimos_registros_fase2(self.entry_id.get())
                     registroAntiguo=registros[14]
                     if registroAntiguo == 15:#Se cumplio el tiempo de fase 2
@@ -240,7 +259,7 @@ class VentanaRatas:
                     pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
                     ultimaDieta=self.base_datos.consultar_ultima_dieta(self.entry_id.get())
                     pesoActual=int(self.entry_peso.get())
-                    dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*.8)/2))#Significa debe subir peso para estar en el margen
+                    dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*bajo)/2))#Significa debe subir peso para estar en el margen
                     self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),str(dietaIdeal),diferencia)
                     if self.checkbox_value.get():
                         gramosFinde=dietaIdeal*3
@@ -253,16 +272,16 @@ class VentanaRatas:
                 ultimaDieta=self.base_datos.consultar_ultima_dieta(self.entry_id.get())
                 pesoActual=int(self.entry_peso.get())
                 diferencia=pesoEstable-pesoActual
-                if pesoActual>pesoEstable*.8:
-                    if pesoActual>pesoEstable*.85:
+                if pesoActual>pesoEstable*bajo:
+                    if pesoActual>pesoEstable*alto:
                         print('Disminuyo la dieta')
-                        dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*.85)/2))#Significa debe bajar peso para estar en el margen
+                        dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*alto)/2))#Significa debe bajar peso para estar en el margen
                     else:
                         print('Se mantuvo la dieta')
                         dietaIdeal=ultimaDieta#Significa que esta en el margen
                 else:
                     print('Se subio la dieta')
-                    dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*.8)/2))#Significa debe subir peso para estar en el margen
+                    dietaIdeal=int(ultimaDieta-((pesoActual-pesoEstable*bajo)/2))#Significa debe subir peso para estar en el margen
                 self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),str(dietaIdeal),diferencia)
                 if self.checkbox_value.get():
                     gramosFinde=dietaIdeal*3
@@ -300,10 +319,10 @@ class VentanaRatas:
         else:
             return False
 
-    def calcular_saludfase2(self):
+    def calcular_saludfase2(self,bajo):
         pesoActual=int(self.entry_peso.get())
         pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
-        if pesoActual < pesoEstable*.8:
+        if pesoActual < pesoEstable*bajo:
             return False
         else:
             return True
