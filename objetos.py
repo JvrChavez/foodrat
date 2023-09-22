@@ -193,6 +193,7 @@ class VentanaRatas:
         ##if self.numero_registros()>8:#Se pregunta si tiene mas de 8 registros
             fase = self.consultar_fase()
             dietasetup=self.combodieta.get()
+            #Quitar el combobox de la dietasetup
             if (dietasetup)=="95%-90%":
                 alto=.95
                 bajo=.9
@@ -375,10 +376,13 @@ class VentanaRatas:
         self.etiqueta_sobras.pack()
         self.entry_sobras.pack()
         self.checkbox.pack()
+        self.combodieta.pack()
+        self.combodieta.current(2)
         self.boton_resultado.pack()
         self.etiqueta_resultado.pack()
         self.boton_limpiar.pack()
         self.boton_admin.place(x=330,y=20)
+        self.limpiar()
 
     def ventanaLogin(self,donde):
         if donde==0:
@@ -390,6 +394,7 @@ class VentanaRatas:
             self.etiqueta_sobras.pack_forget()
             self.entry_sobras.pack_forget()
             self.checkbox.pack_forget()
+            self.combodieta.pack_forget()
             self.boton_resultado.pack_forget()
             self.etiqueta_resultado.pack_forget()
             self.boton_limpiar.pack_forget()
@@ -515,6 +520,7 @@ class VentanaRatas:
         self.entry_id.delete(0,tk.END)
         self.entry_peso.delete(0,tk.END)
         self.entry_sobras.delete(0,tk.END)
+        self.combodieta.current(2)
         self.etiqueta_resultado.config(text="")
         
 
