@@ -190,7 +190,7 @@ class VentanaRatas:
         self.boton_admin.place(x=330,y=20)
 
     def insertar_dieta(self):
-        ##if self.numero_registros()>8:#Se pregunta si tiene mas de 8 registros
+        if self.numero_registros()>8:#Se pregunta si tiene mas de 8 registros
             fase = self.consultar_fase()
             dietasetup=self.combodieta.get()
             #Quitar el combobox de la dietasetup
@@ -289,17 +289,16 @@ class VentanaRatas:
                     self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(gramosFinde)+"gr")
                 else:
                     self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(dietaIdeal)+"gr")
+        else:#En caso de no tener mas de 8 registros...
 
-            """else:#En caso de no tener mas de 8 registros...
-
-                print("Fase 1 fuera del if")
-                self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
-                self.etiqueta_resultado.config(text="Aun no es estable")"""
+            print("Fase 1 fuera del if")
+            self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get())
+            self.etiqueta_resultado.config(text="Aun no es estable")
 
     def calcular_estabilidad(self,registros):
         primer= sum(registros[:3])/3
         segundo=sum(registros[3:6])/3
-        primerError=abs(((primer-segundo)/(sum(registros[:6])/6))*100) #DA ERROR----------------------------------------------------------
+        primerError=abs(((primer-segundo)/(sum(registros[:6])/6))*100) #DA ERROR---------------------------------------------------------- 
         print("Primer porcentaje de error "+str(primerError))
         if primerError<=.5:
             tercero=sum(registros[1:4])/3
@@ -526,7 +525,7 @@ class VentanaRatas:
 
 # Configuración de la base de datos
 host = "localhost"
-port = "3307"
+port = "3306"
 usuario = "root"
 contraseña = ""
 nombre_base_datos = "foodrat"
