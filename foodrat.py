@@ -211,7 +211,7 @@ class VentanaRatas:
                 bajo=.7
             elif("70%-65%"):
                 alto=.7
-                bajo=0.65
+                bajo=.65
             if fase and int(fase[0]) == 1:
                 #Aqui hare el calculo para saber si ya es estable el peso de la rata creando un metodo que mande a llamar los ultimos 6 registros o hasta mas
                 registros=self.base_datos.ultimos_registros(self.entry_id.get())
