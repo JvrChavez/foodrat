@@ -120,7 +120,7 @@ class BaseDatosRatas:
         resultados = self.cursor.fetchall()
         registros=[]
         for resultado in resultados:
-            registros.append(int(resultado[0]))
+            registros.append(resultado[0])
         return registros
 
 
@@ -211,7 +211,7 @@ class VentanaRatas:
                 bajo=.7
             elif("70%-65%"):
                 alto=.7
-                bajo=.65
+                bajo=0.65
             if fase and int(fase[0]) == 1:
                 #Aqui hare el calculo para saber si ya es estable el peso de la rata creando un metodo que mande a llamar los ultimos 6 registros o hasta mas
                 registros=self.base_datos.ultimos_registros(self.entry_id.get())
@@ -231,7 +231,7 @@ class VentanaRatas:
                     self.etiqueta_resultado.config(text="Aun no es estable")
             elif fase and int(fase[0]) == 2:
                 print("Estamos en la fase 2")
-                if self.calcular_saludfase2(self.entry_id.get(),bajo):#Saber si sigue saludable la rata
+                if self.calcular_saludfase2(bajo):#Saber si sigue saludable la rata
                     registros=self.base_datos.ultimos_registros_fase2(self.entry_id.get())
                     registroAntiguo=registros[14]
                     if registroAntiguo == 15:#Se cumplio el tiempo de fase 2
