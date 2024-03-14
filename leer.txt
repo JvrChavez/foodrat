@@ -50,3 +50,8 @@ Si esta mas bajo del 80%
 	dieta+(dif8/2)
 Si esta arriba del 85%
 	dieta-(dif85/2)
+
+ERRORES
+	-Cuando en la fase 2 baja demasiado, no entra a fase 3 como deberia y da error mostrando el numero de registros.
+
+	-Al registrar despues se vuelve al lobby y no deja registrar porque se bloquea el boton.
