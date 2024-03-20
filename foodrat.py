@@ -150,7 +150,7 @@ class VentanaRatas:
         self.ventana.geometry("400x300")
         self.ventana.resizable(width=False, height=False)
 
-        self.imagen=Image.open("logo.png")
+        self.imagen=Image.open("_internal/logo.png")
         self.imagen = self.imagen.resize((150, 110))
         self.photo = ImageTk.PhotoImage(self.imagen)
         self.label_imagen = tk.Label(self.ventana, image=self.photo)
