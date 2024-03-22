@@ -59,15 +59,15 @@ class BaseDatosRatas:
         except mysql.connector.IntegrityError as e:
             print("Error: El valor ya está duplicado en la base de datos")
 
-    def insertar_dieta_fase1(self, idrat,peso,sobras,temp):
+    def insertar_dieta_fase1(self, idrat,fecha,peso,sobras,temp):
         consulta = "INSERT INTO diadieta (idrat,fecha,peso,sobras,temperatura) VALUES (%s,%s,%s,%s,%s)"
-        datos = (idrat, datetime.now().strftime('%Y-%m-%d %H:%M:%S'),peso,str(sobras),temp,)
+        datos = (idrat,fecha,peso,str(sobras),temp,)
         self.cursor.execute(consulta, datos)
         self.conexion.commit()
 
-    def insertar_dieta_fase2(self, idrat,peso,sobras,temp,dieta,diferencia):
-        consulta = "INSERT INTO diadieta (idrat,fecha,peso,sobras,temperatura,dieta,diferencia) VALUES (%s,%s,%s,%s,%s,%s,%s)"
-        datos = (idrat, datetime.now().strftime('%Y-%m-%d %H:%M:%S'),peso,sobras,temp,dieta,diferencia,)
+    def insertar_dieta_fase2(self, idrat,fecha,peso,sobras,temp,dieta,diferencia,porcent,fin):
+        consulta = "INSERT INTO diadieta (idrat,fecha,peso,sobras,temperatura,dieta,diferencia,porcentaje,finDeSemana) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        datos = (idrat,fecha,peso,sobras,temp,dieta,diferencia,porcent,fin,)
         self.cursor.execute(consulta, datos)
         self.conexion.commit()
 
@@ -157,6 +157,34 @@ class VentanaRatas:
         self.label_imagen = tk.Label(self.ventana, image=self.photo)
         self.label_imagen.place(x=-25,y=190)
 
+        self.etiqueta_dia=tk.Label(self.ventana,text="Dia")
+        self.dia = ttk.Combobox(
+            self.ventana,
+            state="readonly",
+            values=[str(i).zfill(2) for i in range(1, 32)]
+        )        
+        self.etiqueta_mes=tk.Label(self.ventana,text="Mes")
+        self.mes = ttk.Combobox(
+            self.ventana,
+            state="readonly",
+            values=[str(i).zfill(2) for i in range(1, 13)]
+        )
+        self.etiqueta_anio=tk.Label(self.ventana,text="Año")
+        self.anio = ttk.Combobox(
+            self.ventana,
+            state="readonly",
+            values=[str(i).zfill(2) for i in range(2015, 2100)]
+        )
+        self.etiqueta_dia.place(x=5,y=10)
+        self.etiqueta_mes.place(x=5,y=50)
+        self.etiqueta_anio.place(x=5,y=90)
+        self.dia.place(x=35,y=10,width=50)
+        self.dia.current(21)
+        self.mes.place(x=35,y=50,width=50)
+        self.mes.current(3)
+        self.anio.place(x=35,y=90,width=50)
+        self.anio.current(10)
+
         self.etiqueta_id = tk.Label(self.ventana, text="ID:")
         self.etiqueta_id.pack()
         self.entry_id = tk.Entry(self.ventana)
@@ -206,9 +234,16 @@ class VentanaRatas:
         self.boton_admin = tk.Button(self.ventana, text="Admin",command=lambda:self.ventanaLogin(0))
         self.boton_admin.place(x=330,y=20)
 
+    def fecha_junta(self):
+        fecha_personalizada = datetime(int(self.anio.get()), int(self.mes.get()), int(self.dia.get()))
+        # Formatear la fecha en el formato 'Año-Mes-Día'
+        return (fecha_personalizada.strftime('%Y-%m-%d'))
+
     def insertar_dieta(self):
-        if self.numero_registros()>8:#Se pregunta si tiene mas de 8 registrosx
-            fase = self.consultar_fase()
+        fecha=self.fecha_junta()
+        fase = self.consultar_fase()
+        if (self.numero_registros()>8) or (fase and (int(fase[0]) == 3 or int(fase[0]) == 2)):#Se pregunta si tiene mas de 8 registrosx
+            #fase = self.consultar_fase()
             dietasetup=self.combodieta.get()
             #Quitar el combobox de la dietasetup
             if (dietasetup)=="95%-90%":
@@ -239,15 +274,15 @@ class VentanaRatas:
                     self.base_datos.cambiar_fase(self.entry_id.get(),2,self.entry_peso.get())
                     #Arriba se hace la machaca de fase 1 a 2
                     #Agregar temperatura
-                    self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),15,0)
+                    self.base_datos.insertar_dieta_fase2(self.entry_id.get(),fecha,self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),15,0,100,self.checkbox_value.get())
                     if self.checkbox_value.get():
-                        self.etiqueta_resultado.config(text="Por fin estable dale 45gr")
+                        self.etiqueta_resultado.config(text="Fase 2, por fin estable dale 45gr")
                     else:                        
-                        self.etiqueta_resultado.config(text="Por fin estable dale 15gr")
+                        self.etiqueta_resultado.config(text="Fase 2, por fin estable dale 15gr")
                 else:
                     print("Fase 1 dentro del if")
-                    self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get())
-                    self.etiqueta_resultado.config(text="Aun no es estable")
+                    self.base_datos.insertar_dieta_fase1(self.entry_id.get(),fecha,self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get())
+                    self.etiqueta_resultado.config(text="Fase 1, aun no es estable")
             elif fase and int(fase[0]) == 2:
                 print("Estamos en la fase 2")
                 if self.calcular_saludfase2(bajo):#Saber si sigue saludable la rata
@@ -258,11 +293,12 @@ class VentanaRatas:
                         print("Cambiaremos a fase 3")   
                         pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())                    
                         pesoActual=float(self.entry_peso.get())
-                        diferencia=pesoEstable-pesoActual                                             
+                        diferencia=pesoEstable-pesoActual
+                        porcentaje=round(((pesoActual/pesoEstable)*100), 1)                                            
                         self.base_datos.cambiar_fase(self.entry_id.get(),3,pesoEstable)
                         #Arriba se hace la machaca de fase 2 a 3
                         #Agregar temperatura
-                        self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),15,diferencia)
+                        self.base_datos.insertar_dieta_fase2(self.entry_id.get(),fecha,self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),15,diferencia,porcentaje,self.checkbox_value.get())
                         if self.checkbox_value.get():
                             self.etiqueta_resultado.config(text="Termino fase 2 dale 45gr")
                         else:                        
@@ -271,18 +307,20 @@ class VentanaRatas:
                         pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())                    
                         pesoActual=float(self.entry_peso.get())
                         diferencia=pesoEstable-pesoActual
+                        porcentaje=round(((pesoActual/pesoEstable)*100), 1)
                         #Agregar temperatura
-                        self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),15,diferencia)
+                        self.base_datos.insertar_dieta_fase2(self.entry_id.get(),fecha,self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),15,diferencia,porcentaje,self.checkbox_value.get())
                         if self.checkbox_value.get():
-                            self.etiqueta_resultado.config(text="Aun en fase 2 dale 45gr")
+                            self.etiqueta_resultado.config(text="Fase 2, Porcentaje "+str(porcentaje)+"%, Dieta 45gr")
                         else:                        
-                            self.etiqueta_resultado.config(text="Aun en fase 2 dale 15gr")
+                            self.etiqueta_resultado.config(text="Fase 2, Porcentaje "+str(porcentaje)+"%, Dieta 15gr")
                 else:#en caso de que no este saludable
                     print("Esta bajando demasiado rapido, se sube la dieta y pasa a fase 3")
                     pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
                     ultimaDieta=self.base_datos.consultar_ultima_dieta(self.entry_id.get())
                     pesoActual=float(self.entry_peso.get())
                     diferencia=pesoEstable-pesoActual
+                    porcentaje=round(((pesoActual/pesoEstable)*100), 1)   
                     self.base_datos.cambiar_fase(self.entry_id.get(),3,pesoEstable)
                     dietaIdeal=float(ultimaDieta-((pesoActual-pesoEstable*bajo)/2))#Significa debe subir peso para estar en el margen
                     if dietaIdeal>=20:
@@ -290,18 +328,19 @@ class VentanaRatas:
                     elif dietaIdeal<=8:
                         dietaIdeal=8
                         #Agregar temperatura
-                    self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),str(dietaIdeal),diferencia)
+                    self.base_datos.insertar_dieta_fase2(self.entry_id.get(),fecha,self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),str(dietaIdeal),diferencia,porcentaje,self.checkbox_value.get())
                     if self.checkbox_value.get():
                         gramosFinde=dietaIdeal*3
-                        self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(round(gramosFinde,1))+"gr")
+                        self.etiqueta_resultado.config(text="Fase 3, Porcentaje "+str(porcentaje)+"%, Dieta "+str(round(gramosFinde,1))+"gr")
                     else:
-                        self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(round(dietaIdeal,1))+"gr")
+                        self.etiqueta_resultado.config(text="Fase 3, Porcentaje "+str(porcentaje)+"%, Dieta "+str(round(dietaIdeal,1))+"gr")
             elif fase and int(fase[0])==3:
                 print("Estamos en la fase 3")
                 pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
                 ultimaDieta=self.base_datos.consultar_ultima_dieta(self.entry_id.get())
                 pesoActual=float(self.entry_peso.get())
                 diferencia=pesoEstable-pesoActual
+                porcentaje=round(((pesoActual/pesoEstable)*100), 1)   
                 if pesoActual>pesoEstable*bajo:
                     if pesoActual>pesoEstable*alto:
                         print('Disminuyo la dieta')
@@ -321,17 +360,17 @@ class VentanaRatas:
                     dietaIdeal=8
                 #Fin de bloqueo de dieta para no llegar a extremos
                 #Agregar temperatura
-                self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),str(dietaIdeal),diferencia)
+                self.base_datos.insertar_dieta_fase2(self.entry_id.get(),fecha,self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get(),str(dietaIdeal),diferencia,porcentaje,self.checkbox_value.get())
                 if self.checkbox_value.get():
                     gramosFinde=dietaIdeal*3
-                    self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(round(gramosFinde,1))+"gr")
+                    self.etiqueta_resultado.config(text="Fase 3, Porcentaje "+str(porcentaje)+"%, Dieta "+str(round(gramosFinde,1))+"gr")
                 else:
-                    self.etiqueta_resultado.config(text="La dieta de hoy es: "+str(round(dietaIdeal,1))+"gr")
+                    self.etiqueta_resultado.config(text="Fase 3, Porcentaje "+str(porcentaje)+"%, Dieta "+str(round(dietaIdeal,1))+"gr")
         else:#En caso de no tener mas de 8 registros...
 
             print("Fase 1 fuera del if")
-            self.base_datos.insertar_dieta_fase1(self.entry_id.get(),self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get())
-            self.etiqueta_resultado.config(text="Aun no es estable")
+            self.base_datos.insertar_dieta_fase1(self.entry_id.get(),fecha,self.entry_peso.get(),self.entry_sobras.get(),self.entry_temp.get())
+            self.etiqueta_resultado.config(text="Fase 1, aun no es estable")
 
     def calcular_estabilidad(self,registros):
         primer= sum(registros[:3])/3
@@ -360,7 +399,7 @@ class VentanaRatas:
     def calcular_saludfase2(self,bajo):
         pesoActual=float(self.entry_peso.get())
         pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())
-        if pesoActual < pesoEstable*bajo:
+        if pesoActual < (pesoEstable*bajo):
             return False
         else:
             return True
@@ -380,8 +419,9 @@ class VentanaRatas:
                 pesoActual=float(self.entry_peso.get())
                 pesoEstable=float(self.entry_pesoEstable.get())
                 diferencia=pesoEstable-pesoActual
+                porcentaje=round(((pesoActual/pesoEstable)*100), 1)   
                 #Agregar temperatura
-                self.base_datos.insertar_dieta_fase2(self.entry_id.get(),self.entry_peso.get(),"0","0",self.entry_dieta.get(),diferencia)                
+                self.base_datos.insertar_dieta_fase2(self.entry_id.get(),None,self.entry_peso.get(),None,None,self.entry_dieta.get(),diferencia,porcentaje,None)                
 
     def consultar_fase(self):
         fase=self.base_datos.consultar_fase(self.entry_id.get())
@@ -405,6 +445,15 @@ class VentanaRatas:
         self.boton_login.pack_forget()
         self.boton_back_login.place_forget()
         #Aparecer
+        self.etiqueta_dia.place(x=5,y=10)
+        self.etiqueta_mes.place(x=5,y=50)
+        self.etiqueta_anio.place(x=5,y=90)
+        self.dia.place(x=35,y=10,width=50)
+        self.dia.current(21)
+        self.mes.place(x=35,y=50,width=50)
+        self.mes.current(3)
+        self.anio.place(x=35,y=90,width=50)
+        self.anio.current(10)
         self.etiqueta_id.pack()
         self.entry_id.bind("<KeyRelease>", self.actualizar_estado_boton_main)
         self.entry_id.pack()
@@ -428,6 +477,12 @@ class VentanaRatas:
     def ventanaLogin(self,donde):
         if donde==0:
             #Desaparecer normal
+            self.etiqueta_dia.place_forget()
+            self.etiqueta_mes.place_forget()
+            self.etiqueta_anio.place_forget()
+            self.dia.place_forget()
+            self.mes.place_forget()
+            self.anio.place_forget()
             self.etiqueta_id.pack_forget()
             self.entry_id.pack_forget()
             self.etiqueta_peso.pack_forget()

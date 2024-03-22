@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 20-03-2024 a las 21:44:01
+-- Tiempo de generación: 22-03-2024 a las 01:43:40
 -- Versión del servidor: 10.4.25-MariaDB
 -- Versión de PHP: 8.1.10
 
@@ -29,12 +29,14 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `diadieta` (
   `idrat` int(2) NOT NULL,
-  `fecha` datetime NOT NULL,
+  `fecha` date DEFAULT NULL,
   `peso` float NOT NULL,
   `sobras` float DEFAULT NULL,
   `dieta` float DEFAULT NULL,
   `diferencia` float DEFAULT NULL,
-  `temperatura` float DEFAULT NULL
+  `temperatura` float DEFAULT NULL,
+  `porcentaje` float DEFAULT NULL,
+  `finDeSemana` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
