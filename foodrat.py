@@ -287,8 +287,12 @@ class VentanaRatas:
                 print("Estamos en la fase 2")
                 if self.calcular_saludfase2(bajo):#Saber si sigue saludable la rata
                     registros=self.base_datos.ultimos_registros_fase2(self.entry_id.get())
-                    numeroDeArray = self.numero_registros() - 1 if self.numero_registros() < 14 else 14
-                    registroAntiguo=registros[numeroDeArray]
+                    numeroDeArray = self.numero_registros() - 1 if self.numero_registros() > 14 else None
+                    print("numero de array"+str(numeroDeArray))
+                    if numeroDeArray!=None:
+                        registroAntiguo=registros[numeroDeArray]
+                    else:
+                        registroAntiguo=0
                     if registroAntiguo == 15:#Se cumplio el tiempo de fase 2
                         print("Cambiaremos a fase 3")   
                         pesoEstable=self.base_datos.consultar_peso_estable(self.entry_id.get())                    

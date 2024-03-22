@@ -4,6 +4,7 @@ Se instala anaconda
 		pip install mysql-connector-python
 		pip install Pillow
 		pip install --upgrade pillow
+		pip install auto-py-to-exe  ##Para crear el ejecutable
 
 
 Despues de 8 registros
