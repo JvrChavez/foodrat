@@ -1,4 +1,4 @@
-Se instala anaconda
+Se instalo anaconda
 		conda create --name lab01 python=3.12.0
 		conda activate lab01
 		pip install mysql-connector-python
@@ -19,30 +19,31 @@ Preguntar si vendra el fin de semana
 	if:
 		sigue normal
 	else:
-		Agregar 2gr a dieta y multiplica la dieta 3 dias.(V,S,D)
+		Multiplica la dieta 3 dias.(V,S,D)
 		
 En Base de datos
-Crear tabla para saber estabilidad true or false de la rata
-Crear tabla para llevar registro de alimentacion.
+Crear tabla para llevar registro de alimentacion (diadieta).
+Crear tabla de rat donde 
 
-Crear querys y ejecutable por si se necesita migrar a otra PC.
-
-Tabla alimentacion:
-IdRat
+Tabla diadieta:
+Idrat
 Fecha
 Peso
 Comida sobrante
 Dieta
-Temperatura
 Diferencia
+Temperatura
+Porcentaje
+finDeSemana (true/false en binario)
 
-Tabla estabiidad:
+Tabla rat
 idrat	int(2)
-name	
+Name	
 Fase (1(Ad libitum),2(Privacion),3(Mantenimiento)) 1.-Fase de engorda
+Peso estable
 
-Despues de que se obtiene la estabilidad y se debe de calcular cuanto es el 100% de la comida tambien
-entonces despues de eso de la estabilidad se le debe reducir la comida al 50% y de ahi ya todo normal de la dieta
+Despues de que se obtiene la estabilidad y se registra en la tabla rat en (Peso Estable)
+entonces despues de eso de la estabilidad se le debe reducir la comida a 15gr y de ahi ya todo igual hasta llegar a fase 3
 
 Formula:
 Si esta mas bajo del 80%
@@ -59,5 +60,10 @@ Nuevas funcionalidades
 	-Agregar en el resultado el % de peso de la rata
 	-Agregar un campo en la base de datos de si fue fin de semana
 	-Quitar fecha y hora automático, hacerlo manual
+
+Configuracion contraseña
+Para configurar la contraseña se debe de encriptar un usuario y contraseña
+Se cambian por los establecidos en la funcion LOGIN de la linea 684.
+Debes utilizar el mismo metodo de enscriptación.
 	
 	
