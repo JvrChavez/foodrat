@@ -21,6 +21,13 @@ Preguntar si vendra el fin de semana
 	else:
 		Multiplica la dieta 3 dias.(V,S,D)
 		
+Formula:
+Si esta mas bajo del 80%
+	dieta+(dif8/2)
+Si esta arriba del 85%
+	dieta-(dif85/2)
+
+
 En Base de datos
 Crear tabla para llevar registro de alimentacion (diadieta).
 Crear tabla de rat donde 
@@ -45,11 +52,6 @@ Peso estable
 Despues de que se obtiene la estabilidad y se registra en la tabla rat en (Peso Estable)
 entonces despues de eso de la estabilidad se le debe reducir la comida a 15gr y de ahi ya todo igual hasta llegar a fase 3
 
-Formula:
-Si esta mas bajo del 80%
-	dieta+(dif8/2)
-Si esta arriba del 85%
-	dieta-(dif85/2)
 
 ERRORES
 
