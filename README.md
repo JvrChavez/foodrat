@@ -1,7 +1,7 @@
 # Foodrat
 Software desarrollado en Python que permite el registro del peso de sujetos de prueba y la generación automática de dietas personalizadas según el régimen seleccionado.
 
-### Enlace de descarga a la [última versión](https://github.com/JvrChavez/foodrat/releases)
+### Enlace de descarga a la [última versión](https://github.com/JvrChavez/foodrat/releases/latest)
 
 El manual de usuario está incluido en la descarga del archivo zip.
 
